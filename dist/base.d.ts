@@ -3,10 +3,20 @@ interface RequestOptions {
     role?: 'editor';
     forceRefresh?: boolean;
 }
+interface ClientOptions {
+    uri: string;
+    firebaseConfig: any;
+    hasuraUploadApiUrl: string;
+    hasuraApiUrl: string;
+    hasuraWsUrl: string;
+    oauthConnectsUrl: string;
+}
 export declare class EarnAllianceBaseClient {
     private readonly _client;
-    constructor(uri: string);
+    private readonly _clientOptions;
+    constructor(options: ClientOptions);
     protected get client(): ApolloClient<NormalizedCacheObject>;
+    protected get clientOptions(): ClientOptions;
     buildRoleContext(role?: string): {
         headers?: undefined;
     } | {

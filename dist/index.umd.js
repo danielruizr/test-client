@@ -95,9 +95,11 @@
 
   class EarnAllianceBaseClient {
       _client;
-      constructor(uri) {
+      _clientOptions;
+      constructor(options) {
+          this._clientOptions = options;
           const httpLink = client.createHttpLink({
-              uri,
+              uri: options.uri,
           });
           const authLink = context.setContext(async (_, { headers }) => {
               const token = await getAccessToken();
@@ -118,6 +120,9 @@
       }
       get client() {
           return this._client;
+      }
+      get clientOptions() {
+          return this._clientOptions;
       }
       buildRoleContext(role) {
           if (!role)

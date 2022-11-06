@@ -1,19 +1,23 @@
-import { createHttpLink, ApolloClient, InMemoryCache, gql } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
-import 'ethers';
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getStorage } from 'firebase/storage';
-import '@firebase/auth';
+'use strict';
 
-const firebaseApp = initializeApp({}); // TODO add int
-const firebaseAuth = getAuth(firebaseApp);
-getStorage(firebaseApp);
+Object.defineProperty(exports, '__esModule', { value: true });
 
-const httpLink = createHttpLink({
+var client = require('@apollo/client');
+var context = require('@apollo/client/link/context');
+require('ethers');
+var app = require('firebase/app');
+var auth = require('firebase/auth');
+var storage = require('firebase/storage');
+require('@firebase/auth');
+
+const firebaseApp = app.initializeApp({}); // TODO add int
+const firebaseAuth = auth.getAuth(firebaseApp);
+storage.getStorage(firebaseApp);
+
+const httpLink = client.createHttpLink({
     uri: '', // TODO: Config
 });
-const authLink = setContext(async (_, { headers }) => {
+const authLink = context.setContext(async (_, { headers }) => {
     const token = await getAccessToken();
     if (!token) {
         return headers;
@@ -25,12 +29,12 @@ const authLink = setContext(async (_, { headers }) => {
         },
     };
 });
-new ApolloClient({
+new client.ApolloClient({
     link: authLink.concat(httpLink),
-    cache: new InMemoryCache(),
+    cache: new client.InMemoryCache(),
 });
 
-gql `
+client.gql `
   query GetSecurityChallenge($address: String!) {
     payload: securityChallenge(address: $address) {
       challenge
@@ -38,7 +42,7 @@ gql `
   }
 `;
 
-gql `
+client.gql `
   mutation SignUp($address: String!, $message: String!, $signature: String!) {
     payload: signUp(
       args: { address: $address, message: $message, signature: $signature }
@@ -48,7 +52,7 @@ gql `
   }
 `;
 
-gql `
+client.gql `
   mutation SignIn($address: String!, $message: String!, $signature: String!) {
     payload: signIn(
       args: { address: $address, message: $message, signature: $signature }
@@ -58,7 +62,7 @@ gql `
   }
 `;
 
-gql `
+client.gql `
   mutation ConnectDiscord($accessToken: String!) {
     payload: connectDiscord(args: { accessToken: $accessToken }) {
       id
@@ -67,7 +71,7 @@ gql `
   }
 `;
 
-gql `
+client.gql `
   mutation DisconnectDiscord($discordId: String!) {
     payload: disconnectDiscord(args: { discordId: $discordId }) {
       id
@@ -75,14 +79,14 @@ gql `
   }
 `;
 
-gql `
+client.gql `
   mutation connectTwitter($idToken: String!, $accessToken: String!, $secret: String!) {
     connectTwitter(data: {idToken: $idToken, accessToken: $accessToken, secret: $secret}) {
       userId
     }
   }
 `;
-gql `
+client.gql `
   mutation disconnectTwitter {
     disconnectTwitter {
       userId
@@ -100,10 +104,10 @@ class EarnAllianceBaseClient {
     _clientOptions;
     constructor(options) {
         this._clientOptions = options;
-        const httpLink = createHttpLink({
+        const httpLink = client.createHttpLink({
             uri: options.uri,
         });
-        const authLink = setContext(async (_, { headers }) => {
+        const authLink = context.setContext(async (_, { headers }) => {
             const token = await getAccessToken();
             if (!token) {
                 return headers;
@@ -115,9 +119,9 @@ class EarnAllianceBaseClient {
                 },
             };
         });
-        this._client = new ApolloClient({
+        this._client = new client.ApolloClient({
             link: authLink.concat(httpLink),
-            cache: new InMemoryCache(),
+            cache: new client.InMemoryCache(),
         });
     }
     get client() {
@@ -153,7 +157,7 @@ class EarnAllianceBaseClient {
     ;
 }
 
-const BLOCKCHAIN_FIELDS = gql `
+const BLOCKCHAIN_FIELDS = client.gql `
   fragment BlockchainFields on Blockchains {
     id
     name
@@ -161,7 +165,7 @@ const BLOCKCHAIN_FIELDS = gql `
   }
 `;
 
-const CREATE_BLOCKCHAIN = gql `
+const CREATE_BLOCKCHAIN = client.gql `
   ${BLOCKCHAIN_FIELDS}
   mutation CreateBlockchain($input: BlockchainsInsertInput!) {
     payload: insertBlockchainsOne(object: $input) {
@@ -170,7 +174,7 @@ const CREATE_BLOCKCHAIN = gql `
   }
 `;
 
-const LIST_BLOCKCHAINS = gql `
+const LIST_BLOCKCHAINS = client.gql `
   ${BLOCKCHAIN_FIELDS}
   query listBlockchains {
     payload: blockchains {
@@ -216,4 +220,4 @@ class EarnAllianceClient extends EarnAllianceBaseClient {
 }
 applyMixins(EarnAllianceClient, [EarnAllianceBlockchainsClient]);
 
-export { EarnAllianceClient };
+exports.EarnAllianceClient = EarnAllianceClient;
