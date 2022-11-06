@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "lib": [
+            "es2022",
+            "dom"
+        ],
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "noImplicitAny": false,
+        "sourceMap": true,
+        "allowJs": true,
+        "types": [
+            "node",
+            "jest"
+        ]
+    },
+    "include": [
+        "./**/*"
+    ],
+    "files": ["node_modules/jest-extended/types/index.d.s"]
+}
