@@ -3,6 +3,7 @@ import { ExternalProvider } from '@ethersproject/providers';
 import { NoMetamaskInstallationError } from './errors/no-metamask-installation.error';
 import { MetamaskNotConnectedError } from './errors/metamask-not-connected.error';
 import { ethers } from 'ethers';
+import { EarnAllianceBaseClient } from 'src/base';
 
 declare global {
     interface Window {
@@ -16,58 +17,64 @@ interface SignedMessage {
     signerAddress: string;
 }
 
-export const isInstalled = (): boolean => window.ethereum?.isMetaMask;
-
-export const isConnected = (): boolean => window.ethereum?.isConnected();
-
-const _validateMetamaskStatus = () => {
-    if (!isInstalled() || !window.ethereum?.isMetaMask) {
-        throw new NoMetamaskInstallationError();
+export class EarnAllianceMetaMaskClient extends EarnAllianceBaseClient {
+    isInstalled(): boolean {
+        return window.ethereum?.isMetaMask;
     }
 
-    if (!isConnected()) {
-        throw new MetamaskNotConnectedError();
+    isConnected(): boolean {
+        return window.ethereum?.isConnected();
     }
-};
 
-const _request = async <T>(request: { method: string; params?: Array<any> }) => {
-    _validateMetamaskStatus();
-    return window.ethereum?.request<T>(request);
-};
+    _validateMetamaskStatus() {
+        if (!this.isInstalled() || !window.ethereum?.isMetaMask) {
+            throw new NoMetamaskInstallationError();
+        }
 
-/**
- * @return eth wallet address string or null
- */
-export const connect = async (): Promise<string | null> => {
-    const accounts = await _request<string[]>({ method: 'eth_requestAccounts' });
-    return accounts?.[0] || null;
-};
+        if (!this.isConnected()) {
+            throw new MetamaskNotConnectedError();
+        }
+    }
 
-/**
- * @return eth wallet address string or null
- */
-export const getAccount = async (): Promise<string | null> => {
-    const accounts = await _request<string[]>({ method: 'eth_accounts' });
-    return accounts?.[0] || null;
-};
+    async _request<T>(request: { method: string; params?: Array<any> }) {
+        this._validateMetamaskStatus();
+        return window.ethereum?.request<T>(request);
+    }
 
-export const onAccountChange = (callback: (account: string) => void) => {
-    window.ethereum?.on('accountsChanged', (...args: unknown[]) => {
-        const accounts = args?.[0] as string[];
-        callback(accounts?.[0]);
-    });
-};
+    /**
+     * @return eth wallet address string or null
+     */
+    async connect(): Promise<string | null> {
+        const accounts = await this._request<string[]>({ method: 'eth_requestAccounts' });
+        return accounts?.[0] || null;
+    }
 
-export const signMessage = async (message: string): Promise<SignedMessage> => {
-    _validateMetamaskStatus();
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
+    /**
+     * @return eth wallet address string or null
+     */
+    async getAccount(): Promise<string | null> {
+        const accounts = await this._request<string[]>({ method: 'eth_accounts' });
+        return accounts?.[0] || null;
+    }
 
-    const [signature, signerAddress] = await Promise.all([signer.signMessage(message), signer.getAddress()]);
+    onAccountChange(callback: (account: string) => void) {
+        window.ethereum?.on('accountsChanged', (...args: unknown[]) => {
+            const accounts = args?.[0] as string[];
+            callback(accounts?.[0]);
+        });
+    }
 
-    return {
-        message,
-        signature,
-        signerAddress,
-    };
-};
+    async signMessage(message: string): Promise<SignedMessage> {
+        this._validateMetamaskStatus();
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+
+        const [signature, signerAddress] = await Promise.all([signer.signMessage(message), signer.getAddress()]);
+
+        return {
+            message,
+            signature,
+            signerAddress,
+        };
+    }
+}

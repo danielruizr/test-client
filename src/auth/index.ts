@@ -1,18 +1,12 @@
-import * as metamask from '../metamask';
 import { InvalidSignerError } from './errors/invalid-signer.error';
 import { NextOrObserver, signInWithCustomToken, User } from '@firebase/auth';
-import { GET_SECURITY_CHALLENGE, SIGN_UP, SIGN_IN, CONNECT_DISCORD, CONNECT_TWITTER, DISCONNECT_DISCORD, DISCONNECT_TWITTER } from './queries';
-import { DisconnectDiscordOutput, DisconnectTwitterResponse, SecurityChallenge, SignInToken } from './interfaces';
+import { SIGN_UP, SIGN_IN, CONNECT_DISCORD, CONNECT_TWITTER, DISCONNECT_DISCORD, DISCONNECT_TWITTER } from './queries';
+import { DisconnectDiscordOutput, DisconnectTwitterResponse, SignInToken } from './interfaces';
 import { ConnectDiscordOutput, ConnectTwitterResponse } from './interfaces';
 import { getAuth, linkWithPopup, TwitterAuthProvider, unlink } from 'firebase/auth';
-import { EarnAllianceBaseClient } from '../base';
+import { EarnAllianceMetaMaskClient } from 'src/metamask';
 
-export class EarnAllianceAuthClient extends EarnAllianceBaseClient {
-    async getSecurityChallenge(address: string) {
-        const resp = await this.query<{ payload: SecurityChallenge }>(GET_SECURITY_CHALLENGE, { address });
-        return resp.data.payload.challenge;
-    }
-
+export class EarnAllianceAuthClient extends EarnAllianceMetaMaskClient {
     public hasInit = false;
     async initialize() {
         if (this.hasInit) {
@@ -21,7 +15,7 @@ export class EarnAllianceAuthClient extends EarnAllianceBaseClient {
 
         this.hasInit = true;
 
-        // metamask.onAccountChange(()  signOut());
+        // this.onAccountChange(()  signOut());
     }
 
     getDiscordAccessToken(): string | null {
@@ -38,7 +32,7 @@ export class EarnAllianceAuthClient extends EarnAllianceBaseClient {
     async signUp(address: string) {
         address = address.toLowerCase();
         const message = await this.getSecurityChallenge(address);
-        const { signature, signerAddress } = await metamask.signMessage(message);
+        const { signature, signerAddress } = await this.signMessage(message);
 
         if (address !== signerAddress.toLowerCase()) {
             throw new InvalidSignerError();
@@ -60,7 +54,7 @@ export class EarnAllianceAuthClient extends EarnAllianceBaseClient {
     async signIn(address: string) {
         address = address.toLowerCase();
         const message = await this.getSecurityChallenge(address);
-        const { signature, signerAddress } = await metamask.signMessage(message);
+        const { signature, signerAddress } = await this.signMessage(message);
 
         if (address !== signerAddress.toLowerCase()) {
             throw new InvalidSignerError();

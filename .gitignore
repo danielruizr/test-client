@@ -110,3 +110,4 @@ typings/
 
 .DS_Store
 /output
+/dist
