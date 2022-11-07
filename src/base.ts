@@ -36,7 +36,7 @@ export class EarnAllianceBaseClient {
     private readonly _firebaseStorage: FirebaseStorage;
     constructor(options: ClientOptions) {
         this._clientOptions = options;
-        this._firebaseApp = initializeApp(options.firebaseConfig);
+        this._firebaseApp = initializeApp(JSON.parse(options.firebaseConfig || '{}'));
         this._firebaseAuth = getAuth(this._firebaseApp);
         this._firebaseStorage = getStorage(this._firebaseApp);
         const httpLink = createHttpLink({
