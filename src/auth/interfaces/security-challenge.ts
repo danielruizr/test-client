@@ -1,3 +1,3 @@
 export interface SecurityChallenge {
-  challenge: string;
+    challenge: string;
 }

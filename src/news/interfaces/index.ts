@@ -1,2 +1,2 @@
-export * from './news'
-export * from './news-mirror-submission'
+export * from './news';
+export * from './news-mirror-submission';

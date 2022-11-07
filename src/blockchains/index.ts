@@ -4,37 +4,27 @@ import { CREATE_BLOCKCHAIN } from './queries/create-blockchain';
 import { LIST_BLOCKCHAINS } from './queries/list-blockchains';
 import { EarnAllianceBaseClient } from '../base';
 
-
-
 export class EarnAllianceBlockchainsClient extends EarnAllianceBaseClient {
-  async listBlockchains (
-    forceRefresh: boolean = false
-  ): Promise<Blockchain[]> {
-    const { data } = await this.query<{ payload: Blockchain[] }>(
-      LIST_BLOCKCHAINS,
-      undefined,
-      {
-        forceRefresh,
-      }
-    );
-    return data.payload;
-  }
+    async listBlockchains(forceRefresh: boolean = false): Promise<Blockchain[]> {
+        const { data } = await this.query<{ payload: Blockchain[] }>(LIST_BLOCKCHAINS, undefined, {
+            forceRefresh,
+        });
+        return data.payload;
+    }
 
-  async createBlockchain (
-    blockchain: Partial<Blockchain>
-  ) {
-    const { data } = await  this.mutate<{ payload: Blockchain }>(
-      CREATE_BLOCKCHAIN,
-      {
-        input: {
-          ...blockchain,
-        },
-      },
-      {
-        role: 'editor',
-      },
-    );
+    async createBlockchain(blockchain: Partial<Blockchain>) {
+        const { data } = await this.mutate<{ payload: Blockchain }>(
+            CREATE_BLOCKCHAIN,
+            {
+                input: {
+                    ...blockchain,
+                },
+            },
+            {
+                role: 'editor',
+            }
+        );
 
-    return data?.payload;
-  }
+        return data?.payload;
+    }
 }

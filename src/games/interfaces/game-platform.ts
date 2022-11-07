@@ -1,9 +1,9 @@
 export interface GamePlatform {
-  platform: GamePlatformEnum;
+    platform: GamePlatformEnum;
 }
 export enum GamePlatformEnum {
-  Window = 'WINDOW',
-  Mac = 'MAC',
-  iOS = 'IOS',
-  Android = 'ANDROID',
+    Window = 'WINDOW',
+    Mac = 'MAC',
+    iOS = 'IOS',
+    Android = 'ANDROID',
 }

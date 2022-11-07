@@ -1,5 +1,5 @@
 export enum GameAssetKey {
-  Snapshot = 'SNAPSHOT',
-  Thumbnail = 'THUMBNAIL',
-  Trailer = 'TRAILER',
+    Snapshot = 'SNAPSHOT',
+    Thumbnail = 'THUMBNAIL',
+    Trailer = 'TRAILER',
 }

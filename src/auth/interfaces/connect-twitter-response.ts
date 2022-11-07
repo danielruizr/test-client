@@ -1,6 +1,6 @@
 export interface ConnectTwitterResponse {
-  userId: string;
+    userId: string;
 }
 export interface DisconnectTwitterResponse {
-  userId: string;
+    userId: string;
 }

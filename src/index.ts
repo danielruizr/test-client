@@ -9,4 +9,4 @@ export class EarnAllianceClient extends EarnAllianceBaseClient {}
 
 export interface EarnAllianceClient extends EarnAllianceBlockchainsClient, EarnAllianceAuthClient {}
 
-applyMixins(EarnAllianceClient, [ EarnAllianceBlockchainsClient, EarnAllianceAuthClient ]);
+applyMixins(EarnAllianceClient, [EarnAllianceBlockchainsClient, EarnAllianceAuthClient]);

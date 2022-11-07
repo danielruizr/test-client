@@ -1,4 +1,4 @@
 export interface DisconnectDiscordOutput {
-  id: string;
-  discordId: string;
+    id: string;
+    discordId: string;
 }

@@ -1,4 +1,4 @@
 export interface GameId {
-  id?: string;
-  slug?: string;
+    id?: string;
+    slug?: string;
 }

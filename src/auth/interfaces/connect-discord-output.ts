@@ -1,4 +1,4 @@
 export interface ConnectDiscordOutput {
-  id: string;
-  discordId: string;
+    id: string;
+    discordId: string;
 }

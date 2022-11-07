@@ -1,4 +1,4 @@
 export interface GamePublisher {
-  id: string;
-  name: string;
+    id: string;
+    name: string;
 }

@@ -1,3 +1,3 @@
 export interface UploadFileResponse {
-  path: string;
+    path: string;
 }
