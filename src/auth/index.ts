@@ -78,7 +78,7 @@ export class EarnAllianceAuthClient extends EarnAllianceMetaMaskClient {
     }
 
     async authorizeDiscord(returnTo: string) {
-        const url = new URL(`/discord/authorize`); // ** ADD URL
+        const url = new URL(`${this.clientOptions.oauthConnectsUrl}/discord/authorize`);
         url.searchParams.append('return_to', returnTo);
         window.location.href = url.toString();
     }
