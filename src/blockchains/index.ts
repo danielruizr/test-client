@@ -1,4 +1,3 @@
-import * as hasuraService from '../hasura';
 import { MutationOptions, QueryOptions } from '@apollo/client';
 import { Blockchain } from './interfaces';
 import { CREATE_BLOCKCHAIN } from './queries/create-blockchain';
@@ -19,7 +18,7 @@ export class EarnAllianceBlockchainsClient extends EarnAllianceBaseClient {
       }
     );
     return data.payload;
-  };
+  }
 
   async createBlockchain (
     blockchain: Partial<Blockchain>

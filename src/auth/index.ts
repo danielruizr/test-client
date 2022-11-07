@@ -1,8 +1,6 @@
 import * as metamask from '../metamask';
 import { InvalidSignerError } from './errors/invalid-signer.error';
-import { firebaseAuth } from '../firebase';
 import { NextOrObserver, signInWithCustomToken, User } from '@firebase/auth';
-import * as hasuraService from '../hasura';
 import {
   GET_SECURITY_CHALLENGE,
   SIGN_UP,
@@ -25,158 +23,158 @@ import {
   TwitterAuthProvider,
   unlink,
 } from 'firebase/auth';
+import { EarnAllianceBaseClient } from '../base';
 
-export const getSecurityChallenge = async (address: string) => {
-  const resp = await hasuraService.query<{ payload: SecurityChallenge }>(
-    GET_SECURITY_CHALLENGE,
-    { address }
-  );
-  return resp.data.payload.challenge;
-};
 
-let hasInit = false;
-export const initialize = async () => {
-  if (hasInit) {
-    return;
+
+export class EarnAllianceAuthClient extends EarnAllianceBaseClient {
+
+  async getSecurityChallenge(address: string) {
+    const resp = await this.query<{ payload: SecurityChallenge }>(
+      GET_SECURITY_CHALLENGE,
+      { address }
+    );
+    return resp.data.payload.challenge;
   }
 
-  hasInit = true;
+  public hasInit = false;
+  async initialize()  {
+    if (this.hasInit) {
+      return;
+    }
 
-  // metamask.onAccountChange(() => signOut());
-};
+    this.hasInit = true;
 
-export const getAccessToken = async (
-  forceRefresh: boolean = false
-): Promise<string | undefined> => {
-  return getCurrentUser()?.getIdToken(forceRefresh);
-};
-
-const getDiscordAccessToken = (): string | null => {
-  const fragment = new URLSearchParams(window.location.hash.slice(1));
-  return fragment.get('discord_access_token');
-};
-
-const clearDiscordAccessToken = () => {
-  const fragment = new URLSearchParams(window.location.hash.slice(1));
-  fragment.delete('discord_access_token');
-  window.location.hash = '#' + fragment.toString();
-};
-
-export const signUp = async (address: string) => {
-  address = address.toLowerCase();
-  const message = await getSecurityChallenge(address);
-  const { signature, signerAddress } = await metamask.signMessage(message);
-
-  if (address !== signerAddress.toLowerCase()) {
-    throw new InvalidSignerError();
+    // metamask.onAccountChange(()  signOut());
   }
 
-  const resp = await hasuraService.mutate<{ payload: SignInToken }>(SIGN_UP, {
-    address,
-    message,
-    signature,
-  });
-
-  if (resp.errors) {
-    throw resp.errors;
+  getDiscordAccessToken (): string | null {
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    return fragment.get('discord_access_token');
   }
 
-  return signInWithCustomToken(firebaseAuth, resp.data!.payload.token);
-};
-
-export const signIn = async (address: string) => {
-  address = address.toLowerCase();
-  const message = await getSecurityChallenge(address);
-  const { signature, signerAddress } = await metamask.signMessage(message);
-
-  if (address !== signerAddress.toLowerCase()) {
-    throw new InvalidSignerError();
+  clearDiscordAccessToken ()  {
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    fragment.delete('discord_access_token');
+    window.location.hash = '#' + fragment.toString();
   }
 
-  const resp = await hasuraService.mutate<{ payload: SignInToken }>(SIGN_IN, {
-    address,
-    message,
-    signature,
-  });
+  async signUp(address: string) {
+    address = address.toLowerCase();
+    const message = await this.getSecurityChallenge(address);
+    const { signature, signerAddress } = await metamask.signMessage(message);
 
-  if (resp.errors) {
-    throw resp.errors;
+    if (address !== signerAddress.toLowerCase()) {
+      throw new InvalidSignerError();
+    }
+
+    const resp = await this.mutate<{ payload: SignInToken }>(SIGN_UP, {
+      address,
+      message,
+      signature,
+    });
+
+    if (resp.errors) {
+      throw resp.errors;
+    }
+
+    return signInWithCustomToken(this.firebaseAuth, resp.data!.payload.token);
   }
 
-  return signInWithCustomToken(firebaseAuth, resp.data!.payload.token);
-};
+  async signIn(address: string) {
+    address = address.toLowerCase();
+    const message = await this.getSecurityChallenge(address);
+    const { signature, signerAddress } = await metamask.signMessage(message);
 
-export const signOut = async () => {
-  await firebaseAuth.signOut();
-};
+    if (address !== signerAddress.toLowerCase()) {
+      throw new InvalidSignerError();
+    }
 
-export const authorizeDiscord = async (returnTo: string) => {
-  const url = new URL(`/discord/authorize`); // ** ADD URL
-  url.searchParams.append('return_to', returnTo);
-  window.location.href = url.toString();
-};
+    const resp = await this.mutate<{ payload: SignInToken }>(SIGN_IN, {
+      address,
+      message,
+      signature,
+    });
 
-export const connectDiscord = async () => {
-  const accessToken = getDiscordAccessToken();
-  clearDiscordAccessToken();
-  if (!accessToken || !getCurrentUser()) {
-    return;
+    if (resp.errors) {
+      throw resp.errors;
+    }
+
+    return signInWithCustomToken(this.firebaseAuth, resp.data!.payload.token);
   }
-  // hasura bind discord
-  const resp = await hasuraService.mutate<{ payload: ConnectDiscordOutput }>(
-    CONNECT_DISCORD,
-    {
+
+  async signOut() {
+    await this.firebaseAuth.signOut();
+  }
+
+  async authorizeDiscord(returnTo: string) {
+    const url = new URL(`/discord/authorize`); // ** ADD URL
+    url.searchParams.append('return_to', returnTo);
+    window.location.href = url.toString();
+  }
+
+  async connectDiscord() {
+    const accessToken = this.getDiscordAccessToken();
+    this.clearDiscordAccessToken();
+    if (!accessToken || !this.getCurrentUser()) {
+      return;
+    }
+    // hasura bind discord
+    const resp = await this.mutate<{ payload: ConnectDiscordOutput }>(
+      CONNECT_DISCORD,
+      {
+        accessToken,
+      }
+    );
+
+    if (resp.errors) {
+      throw resp.errors;
+    }
+  }
+
+  async disconnectDiscord(discordId: string) {
+    // hasura bind discord
+    const resp = await this.mutate<{ payload: DisconnectDiscordOutput }>(
+      DISCONNECT_DISCORD,
+      {
+        discordId,
+      }
+    );
+
+    if (resp.errors) {
+      throw resp.errors;
+    }
+  }
+
+  async connectTwitter() {
+    const auth = getAuth();
+    const provider = new TwitterAuthProvider();
+
+    const result = await linkWithPopup(auth.currentUser!, provider);
+    const credential = TwitterAuthProvider.credentialFromResult(result);
+    const accessToken = credential?.accessToken;
+    const secret = credential?.secret;
+    const idToken = await result.user.getIdToken();
+    await this.mutate<ConnectTwitterResponse>(CONNECT_TWITTER, {
+      idToken,
       accessToken,
-    }
-  );
-
-  if (resp.errors) {
-    throw resp.errors;
+      secret,
+    });
   }
-};
 
-export const disconnectDiscord = async (discordId: string) => {
-  // hasura bind discord
-  const resp = await hasuraService.mutate<{ payload: DisconnectDiscordOutput }>(
-    DISCONNECT_DISCORD,
-    {
-      discordId,
-    }
-  );
 
-  if (resp.errors) {
-    throw resp.errors;
+  onAuthStateChanged(callback: NextOrObserver<User | null>) {
+    this.firebaseAuth.onAuthStateChanged(callback);
   }
-};
 
-export const connectTwitter = async () => {
-  const auth = getAuth();
-  const provider = new TwitterAuthProvider();
+  async disconnectTwitter() {
+    const auth = getAuth();
+    const provider = new TwitterAuthProvider();
+    const user = auth.currentUser!;
+    await unlink(user, provider.providerId);
+    await this.mutate<{ disconnectTwitter: DisconnectTwitterResponse }>(
+      DISCONNECT_TWITTER
+    );
+  }
 
-  const result = await linkWithPopup(auth.currentUser!, provider);
-  const credential = TwitterAuthProvider.credentialFromResult(result);
-  const accessToken = credential?.accessToken;
-  const secret = credential?.secret;
-  const idToken = await result.user.getIdToken();
-  await hasuraService.mutate<ConnectTwitterResponse>(CONNECT_TWITTER, {
-    idToken,
-    accessToken,
-    secret,
-  });
-};
-
-export const getCurrentUser = () => firebaseAuth.currentUser;
-
-export const onAuthStateChanged = (callback: NextOrObserver<User | null>) => {
-  firebaseAuth.onAuthStateChanged(callback);
-};
-
-export const disconnectTwitter = async () => {
-  const auth = getAuth();
-  const provider = new TwitterAuthProvider();
-  const user = auth.currentUser!;
-  await unlink(user, provider.providerId);
-  await hasuraService.mutate<{ disconnectTwitter: DisconnectTwitterResponse }>(
-    DISCONNECT_TWITTER
-  );
-};
+}
